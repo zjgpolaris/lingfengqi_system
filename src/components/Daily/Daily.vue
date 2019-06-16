@@ -47,11 +47,16 @@
                 end-placeholder="结束日期">
                 </el-date-picker>     
                 <el-button type="primary" @click="findDailyBackground">查看日期背景</el-button>
-                <div class="DailyBackground">
-                    <!-- <template v-if="imgURL" v-for="imgURL">
-                        <img :src="imgURL" />
-                    </template> -->
-                </div>
+                <table class="DailyBackground">
+                    <template  v-for="(item,index) in imgUrls" >
+                        <tr :key="index">
+                            <td>{{item.daily}}</td>
+                            <td class="dailyImg">
+                                <img :src="item.url" />
+                            </td>
+                        </tr>
+                    </template>
+                </table>
             </div>
         </jg-table>
     </div>
@@ -65,8 +70,9 @@ export default {
             form:{
                 description:{}
             },
+            show:'',
             daily:[],
-            imgURL:null
+            imgUrls:[]
         }
     },
     methods: {
@@ -76,7 +82,17 @@ export default {
         findDailyBackground(){
             this.$http.get(this.$apis.findDailyBackground,{from:this.daily[0],to:this.daily[1]}).then((resp)=>{
                 console.log(resp)
-                this.imgURL = process.env.VUE_APP_BaseURL + resp.data.data[0].imgURL.split('\\').join('/').substring(1)
+                if(resp.data.data.length){
+                    for(let i=0;i<resp.data.data.length;i++){
+                        const url = process.env.VUE_APP_BaseURL + resp.data.data[i].imgURL.split('\\').join('/').substring(1);
+                        const date = new Date(Number(resp.data.data[i].daily))
+                        const Y = date.getFullYear() + '-';
+                        const M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+                        const D = (date.getDate() < 10 ? '0'+date.getDate() : date.getDate()) + ' ';
+                        const daily = Y+M+D
+                        this.imgUrls.push({url,...resp.data.data[i],daily})
+                    }
+                }
             })
         },
         setDailyBackground(){
@@ -109,6 +125,18 @@ export default {
         margin-top: 5px;
         img{
             height: 100%
+        }
+    }
+    table{
+        margin: 0;
+        padding: 0
+    }
+    .dailyImg{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        img{
+            height: 40px
         }
     }
 </style>

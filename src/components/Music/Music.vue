@@ -41,7 +41,8 @@
             <table slot="jgTable-content">
                 <tr v-for="(item,index) in MusicList" :key="index">
                     <td>{{item.name}}</td>
-                    <td>
+                    <td>{{item.type}}</td>
+                    <td class="videoIcon">
                         <img :src="'http://localhost:3000'+item.icon.replace(/\\/g,'/')" :alt="item.name">
                     </td>
                     <td>
@@ -77,7 +78,6 @@ export default {
     },
     methods: {
         deleteMusic(_id){
-            console.log(JSON.stringify({musicList:[{_id}]}))
             const musicList =JSON.stringify([{_id}])
             this.$http.post(this.$apis.deleteMusic,{musicList:musicList}).then((resp)=>{
                 console.log(resp)
@@ -85,13 +85,11 @@ export default {
             })
         },
         getVideo(ev){
-            console.log(ev.target.files);
             let files = ev.target.files;
             this.file = files[0];
             this.fileSize = files[0].size;
         },
         getIcon(ev){
-            console.log(ev.target.files);
             this.iconInput = ev.target.files[0];
         },
         uploadMusic(){
@@ -112,7 +110,6 @@ export default {
                 this.$message('文件已秒传成功')
                 return false;
             }else{
-
                 console.log("文件还没有上传");
                 await this.checkAndUploadChunk(this.fileMd5Value, result.chunkList||[],file.name,musicType)
             }
@@ -120,6 +117,7 @@ export default {
         //校验文件是否存在
         checkFile(fileName, fileMd5Value){ 
             const _this = this
+            console.log(_this.musicType)
             return new Promise((resolve,reject)=>{
                 _this.$http.get(_this.$apis.checkFile,{fileName,fileMd5Value,musicType:_this.musicType}).then((resp)=>{
                     console.log(resp);
@@ -158,6 +156,7 @@ export default {
                 if((i+1)==chunks){
                     form.append('iconInput',this.iconInput)
                 }
+                console.log(form)
                 let config = {
                     headers: {
                         'Content-Type': 'multipart/form-data'
@@ -165,6 +164,7 @@ export default {
                 }
                 axios.post(this.$apis.uploadMusic,form,config).then((resp)=>{
                     resolve(resp);
+                    console.log('文件上传完成')
                     _this.$store.dispatch('loadMusicList')
                 })
             })
@@ -209,5 +209,13 @@ export default {
     #music{
         width: 100%;
         height: 100%;
+    }
+    .videoIcon{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        img{
+            height: 60px
+        }
     }
 </style>
